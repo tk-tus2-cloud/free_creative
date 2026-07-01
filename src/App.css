@@ -1,0 +1,373 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 14px 24px;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-header h1 {
+  font-size: 20px;
+  white-space: nowrap;
+}
+
+.tab-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.tab-nav button,
+.view-mode-tabs button {
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.tab-nav button.active,
+.view-mode-tabs button.active {
+  background: var(--accent);
+  color: white;
+}
+
+.tab-nav button:hover:not(.active),
+.view-mode-tabs button:hover:not(.active) {
+  background: var(--border);
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--panel-bg);
+  border-right: 1px solid var(--border);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fiscal-year-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fiscal-year-picker select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.sidebar h2 {
+  font-size: 14px;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.department-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.department-list li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 6px;
+}
+
+.department-list li.selected {
+  background: var(--accent);
+}
+
+.department-list li.selected .dept-button {
+  color: white;
+  font-weight: 600;
+}
+
+.dept-button {
+  flex: 1;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.dept-button:hover {
+  background: var(--border);
+}
+
+.department-list li.selected .dept-button:hover {
+  background: transparent;
+}
+
+.dept-actions {
+  display: flex;
+  gap: 2px;
+  padding-right: 4px;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.icon-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.icon-btn.danger {
+  color: var(--danger);
+}
+
+.add-department-form,
+.add-category-form {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.add-category-form {
+  margin-top: 16px;
+}
+
+.add-department-form input,
+.add-category-form input {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  min-width: 0;
+}
+
+.add-department-form button,
+.add-category-form button {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.add-department-form button:hover,
+.add-category-form button:hover {
+  background: var(--accent-hover);
+}
+
+.app-main {
+  flex: 1;
+  padding: 20px 24px;
+  overflow: auto;
+  min-width: 0;
+}
+
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.view-mode-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+button.secondary {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button.secondary:hover {
+  background: var(--border);
+}
+
+.table-scroll {
+  overflow: auto;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.budget-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.budget-table th,
+.budget-table td {
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: 6px 8px;
+  text-align: right;
+}
+
+.budget-table th {
+  background: #f0f2f7;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: center;
+}
+
+.budget-table thead th.sticky-col {
+  z-index: 3;
+}
+
+.sticky-col {
+  position: sticky;
+  left: 0;
+  background: var(--panel-bg);
+  text-align: left !important;
+  z-index: 2;
+  min-width: 140px;
+}
+
+.budget-table tfoot .sticky-col {
+  background: #f0f2f7;
+}
+
+.budget-table tfoot td {
+  font-weight: 600;
+  background: #f7f8fa;
+}
+
+.category-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  padding: 2px;
+}
+
+.category-input:focus {
+  background: #fff8d8;
+  outline: 1px solid var(--accent);
+}
+
+.cell-input {
+  width: 84px;
+  text-align: right;
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 13px;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.cell-input:focus {
+  border-color: var(--accent);
+  background: white;
+  outline: none;
+}
+
+.cell-readonly {
+  display: inline-block;
+  min-width: 84px;
+}
+
+.col-total {
+  font-weight: 600;
+  min-width: 96px;
+}
+
+.col-actions {
+  width: 32px;
+  text-align: center;
+}
+
+.empty-state {
+  color: var(--text);
+  padding: 40px;
+  text-align: center;
+}
+
+.chart-box {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.summary-table {
+  border-collapse: collapse;
+  width: 100%;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+.summary-table th,
+.summary-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+}
+
+.summary-table th:first-child,
+.summary-table td:first-child {
+  text-align: left;
+}
+
+.summary-table thead th {
+  background: #f0f2f7;
+}
+
+.summary-table tfoot td {
+  font-weight: 600;
+  background: #f7f8fa;
+}
+
+.summary-table td.negative {
+  color: var(--danger);
+}
