@@ -17,6 +17,7 @@
     --border:         rgba(11,11,11,0.10);
     --bar-total:      #898781;
     --bar-up:         #2a78d6;
+    --bar-plan:       #eb6834;
     --bar-down:       #e34948;
     --badge-rec-bg:   #e3effc;
     --badge-rec-fg:   #1c5cab;
@@ -38,6 +39,7 @@
       --border:         rgba(255,255,255,0.10);
       --bar-total:      #898781;
       --bar-up:         #3987e5;
+      --bar-plan:       #d95926;
       --bar-down:       #e66767;
       --badge-rec-bg:   #16304f;
       --badge-rec-fg:   #86b6ef;
@@ -59,6 +61,7 @@
     --border:         rgba(255,255,255,0.10);
     --bar-total:      #898781;
     --bar-up:         #3987e5;
+    --bar-plan:       #d95926;
     --bar-down:       #e66767;
     --badge-rec-bg:   #16304f;
     --badge-rec-fg:   #86b6ef;
@@ -89,6 +92,7 @@
   .sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
   .sw.total { background: var(--bar-total); }
   .sw.up    { background: var(--bar-up); }
+  .sw.plan  { background: var(--bar-plan); }
   .sw.down  { background: var(--bar-down); }
   .sw.gap   {
     background: repeating-linear-gradient(45deg, transparent 0 3px, var(--text-muted) 3px 4px);
@@ -146,7 +150,8 @@
 <body>
 <div class="wrap">
   <h1>施策ブリッジ ウォーターフォール図 設計案</h1>
-  <p class="sub">積上計画 173.3 → 最新の月末見通し 200 → 経営執行プラン 220（単位は元図に準拠）</p>
+  <p class="sub">積上計画 173.3 → 最新の月末見通し 200 → 経営執行プラン 220（単位は元図に準拠）<br>
+  ※ 月末見通し→経営執行プラン間の内訳（計画増分 +8／追加施策 +7／GAP +5）は<strong>仮置き</strong>です。確定値が出たら差し替えてください（HTML 内の stepsA / stepsC 配列とデータ表）。</p>
 
   <div class="qa">
     <h2>相談①②への回答（推奨）</h2>
@@ -161,13 +166,14 @@
   <div class="legend" role="list">
     <span><i class="sw total"></i>実績・計画の水準（合計）</span>
     <span><i class="sw up"></i>増加（施策）</span>
-    <span><i class="sw gap"></i>GAP（施策未特定）</span>
+    <span><i class="sw plan"></i>増加（修正計画による計画増分）</span>
+    <span><i class="sw gap"></i>GAP（未充当）</span>
     <span><i class="sw down"></i>減少</span>
   </div>
 
   <div class="card">
     <h2>案A：積上計画起点＋年初計画は基準線 <span class="badge rec">推奨</span></h2>
-    <p class="note">青枠の柱は描かず、年初計画 189 を点線で重ねる折衷案。施策 2 本（+14 / +12.7）で見通し 200、残る GAP 20 は「施策未特定」を斜線で明示。</p>
+    <p class="note">青枠の柱は描かず、年初計画 189 を点線で重ねる折衷案。施策 2 本（+14 / +12.7）で見通し 200。経営執行プランまでの残り 20 は「修正計画による計画増分」「追加施策」と、それでも埋まらない「GAP（未充当）」の 3 段に分解（内訳は仮置き）。計画増分は施策と性質が異なるためオレンジで塗り分け、未充当 GAP のみ斜線。</p>
     <div class="chart" id="chartA"></div>
   </div>
 
@@ -183,7 +189,7 @@
 
   <div class="card">
     <h2>参考：青枠を残した場合（年初計画から描く） <span class="badge ref">参考</span></h2>
-    <p class="note">相談①で「残す」を選んだ場合の見え方。柱が 8 本になり、△15.7 と +20 の 2 つの GAP が並ぶため、主役である施策の積み増しが埋もれがち。</p>
+    <p class="note">相談①で「残す」を選んだ場合の見え方。柱が 10 本になり、GAP △15.7（減少）と GAP 未充当（斜線）が同名で並ぶため、主役である施策の積み増しが埋もれがち。</p>
     <div class="chart" id="chartC"></div>
   </div>
 
@@ -198,7 +204,9 @@
         <tr><td>原価・物流費高騰抑制</td><td class="num">+14.0</td><td class="num">187.3</td><td>増加（施策）</td></tr>
         <tr><td>販促再開・売り方改善</td><td class="num">+12.7</td><td class="num">200.0</td><td>増加（施策）</td></tr>
         <tr><td>最新の月末見通し</td><td class="num">200.0</td><td class="num">200.0</td><td>合計</td></tr>
-        <tr><td>GAP（施策未特定）</td><td class="num">+20.0</td><td class="num">220.0</td><td>GAP</td></tr>
+        <tr><td>修正計画による計画増分</td><td class="num">+8.0（仮）</td><td class="num">208.0</td><td>増加（計画増分）</td></tr>
+        <tr><td>追加施策</td><td class="num">+7.0（仮）</td><td class="num">215.0</td><td>増加（施策）</td></tr>
+        <tr><td>GAP（未充当）</td><td class="num">+5.0（仮）</td><td class="num">220.0</td><td>GAP</td></tr>
         <tr><td>経営執行プラン</td><td class="num">220.0</td><td class="num">220.0</td><td>合計（目標）</td></tr>
       </tbody>
     </table>
@@ -269,7 +277,7 @@
     el("title", {}, svg).textContent = cfg.title;
 
     const inkP = css("--text-primary"), inkS = css("--text-secondary"), inkM = css("--text-muted");
-    const cTotal = css("--bar-total"), cUp = css("--bar-up"), cDown = css("--bar-down");
+    const cTotal = css("--bar-total"), cUp = css("--bar-up"), cPlan = css("--bar-plan"), cDown = css("--bar-down");
     const cBase = css("--baseline"), cGrid = css("--grid");
 
     // 斜線パターン（GAP＝施策未特定）
@@ -333,9 +341,9 @@
         tipHtml = `<div class="t-name">${s.name}</div><div class="t-val">水準：${fmt(s.value)}</div>`;
       } else if (s.kind === "gap") {
         el("rect", { x, y: yTop, width: barW, height: h, rx: 4, fill: `url(#${containerId}-hatch)`, stroke: inkM, "stroke-width": 1, "stroke-dasharray": "4 3" }, svg);
-        tipHtml = `<div class="t-name">${s.name}</div><div class="t-val">${fmtDelta(s.delta)}（${fmt(b.bottom)} → ${fmt(b.top)}）<br>施策未特定・追加施策で充当</div>`;
+        tipHtml = `<div class="t-name">${s.name}</div><div class="t-val">${fmtDelta(s.delta)}（${fmt(b.bottom)} → ${fmt(b.top)}）<br>${s.tip || "施策未特定・要検討"}</div>`;
       } else {
-        el("path", { d: roundedBarPath(x, yTop, barW, h, 4, !isDown), fill: isDown ? cDown : cUp }, svg);
+        el("path", { d: roundedBarPath(x, yTop, barW, h, 4, !isDown), fill: isDown ? cDown : s.plan ? cPlan : cUp }, svg);
         const from = isDown ? b.top : b.bottom, to = isDown ? b.bottom : b.top;
         tipHtml = `<div class="t-name">${s.name}</div><div class="t-val">${fmtDelta(s.delta)}（${fmt(from)} → ${fmt(to)}）</div>`;
       }
@@ -383,7 +391,9 @@
     { kind: "delta", name: "原価・物流費\n高騰抑制", delta: 14 },
     { kind: "delta", name: "販促再開・\n売り方改善", delta: 12.7 },
     { kind: "total", name: "最新の\n月末見通し", value: 200, boldName: true },
-    { kind: "gap", name: "GAP", delta: 20, note: "追加施策で充当" },
+    { kind: "delta", name: "修正計画による\n計画増分", delta: 8, plan: true },
+    { kind: "delta", name: "追加施策", delta: 7 },
+    { kind: "gap", name: "GAP", delta: 5, note: "未充当", tip: "追加施策でも埋まらない残り・要検討" },
     { kind: "total", name: "経営執行\nプラン", value: 220, emphasis: true },
   ];
 
@@ -394,7 +404,9 @@
     { kind: "delta", name: "原価・物流費\n高騰抑制", delta: 14 },
     { kind: "delta", name: "販促再開・\n売り方改善", delta: 12.7 },
     { kind: "total", name: "最新の\n月末見通し", value: 200, boldName: true },
-    { kind: "gap", name: "GAP", delta: 20, note: "追加施策で充当" },
+    { kind: "delta", name: "修正計画による\n計画増分", delta: 8, plan: true },
+    { kind: "delta", name: "追加施策", delta: 7 },
+    { kind: "gap", name: "GAP", delta: 5, note: "未充当", tip: "追加施策でも埋まらない残り・要検討" },
     { kind: "total", name: "経営執行\nプラン", value: 220, emphasis: true },
   ];
 
