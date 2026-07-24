@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { buildStats, formatMillionYen } from '../../fx/calc'
+import { buildStats, formatMillionYen, type BaselineComparison, type CurrencyStats } from '../../fx/calc'
 import { loadFxData, saveFxData } from '../../fx/storage'
 import type { FxData } from '../../fx/types'
 import CurrencyRateCard from './CurrencyRateCard'
@@ -8,6 +8,39 @@ import FxSimulator from './FxSimulator'
 
 interface Props {
   fiscalYear: number
+}
+
+// 比較軸: 年平均レートを何と比較し、何の判断に使うか
+const COMPARISON_AXES: {
+  label: string
+  purpose: string
+  pick: (s: CurrencyStats) => BaselineComparison | null
+}[] = [
+  {
+    label: '対 前年',
+    purpose: '前年からの増減益要因の説明(実際に効いた為替影響)',
+    pick: (s) => s.vsPrevYear,
+  },
+  {
+    label: '対 期初計画',
+    purpose: '年度予算(期初レート前提)の達成見通し',
+    pick: (s) => s.vsInitialPlan,
+  },
+  {
+    label: '対 修正計画',
+    purpose: '期中修正後の直近見通しからの乖離(業績予想修正の判断)',
+    pick: (s) => s.vsRevisedPlan,
+  },
+]
+
+function sumImpact(
+  stats: CurrencyStats[],
+  pick: (s: CurrencyStats) => BaselineComparison | null,
+  key: 'salesImpact' | 'profitImpact',
+): number | null {
+  const values = stats.map((s) => pick(s)?.[key]).filter((v): v is number => v !== null && v !== undefined)
+  if (values.length === 0) return null
+  return values.reduce((a, b) => a + b, 0)
 }
 
 export default function FxDashboard({ fiscalYear }: Props) {
@@ -19,9 +52,6 @@ export default function FxDashboard({ fiscalYear }: Props) {
 
   const stats = useMemo(() => buildStats(fxData), [fxData])
 
-  const planGapProfitTotal = stats.reduce((a, s) => a + (s.planGapProfit ?? 0), 0)
-  const planGapSalesTotal = stats.reduce((a, s) => a + (s.planGapSales ?? 0), 0)
-
   return (
     <div className="fx-dashboard">
       <div className="table-toolbar">
@@ -29,17 +59,45 @@ export default function FxDashboard({ fiscalYear }: Props) {
       </div>
       <p className="fx-note">
         ドル円が1円(約0.7%)動いたときに各国通貨が何%連動して動き、円換算でどの程度の損益影響になるかを可視化します。
-        棒グラフは月平均レート、点線は計画レートです。
+        棒グラフは月平均レート、点線は期初計画(橙)・修正計画(緑)レートです。
       </p>
 
       <FxSimulator stats={stats} fiscalYear={fiscalYear} />
 
       <div className="table-toolbar fx-cards-toolbar">
-        <h2>通貨別レート状況(計画レートからの変化)</h2>
-        <span className="fx-plan-gap">
-          対計画の年間影響(年平均レートベース): 売上高 {formatMillionYen(planGapSalesTotal, true)} / 営業利益{' '}
-          {formatMillionYen(planGapProfitTotal, true)}
-        </span>
+        <h2>何と比較するか(年平均レートベースの年間影響)</h2>
+      </div>
+      <p className="fx-note">
+        同じ「為替影響」でも、比較する基準によって意味が変わります。前年比は損益の増減要因の説明に、
+        期初計画比は年度予算の達成見通しに、修正計画比は直近の業績予想からの上振れ・下振れの把握に使います。
+      </p>
+      <table className="summary-table fx-comparison-table">
+        <thead>
+          <tr>
+            <th>比較軸</th>
+            <th>見る目的</th>
+            <th>売上高への影響</th>
+            <th>営業利益への影響</th>
+          </tr>
+        </thead>
+        <tbody>
+          {COMPARISON_AXES.map((axis) => {
+            const sales = sumImpact(stats, axis.pick, 'salesImpact')
+            const profit = sumImpact(stats, axis.pick, 'profitImpact')
+            return (
+              <tr key={axis.label}>
+                <td>{axis.label}</td>
+                <td className="fx-purpose">{axis.purpose}</td>
+                <td className={sales !== null && sales < 0 ? 'negative' : ''}>{formatMillionYen(sales, true)}</td>
+                <td className={profit !== null && profit < 0 ? 'negative' : ''}>{formatMillionYen(profit, true)}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+
+      <div className="table-toolbar fx-cards-toolbar">
+        <h2>通貨別レート状況(期初計画・修正計画との比較)</h2>
       </div>
       <div className="fx-cards-grid">
         {stats.map((s) => (
@@ -84,11 +142,23 @@ export default function FxDashboard({ fiscalYear }: Props) {
             (例: 他通貨のβを0にすればドル円単独のシナリオになります)。
           </p>
 
-          <h3>対計画影響</h3>
+          <h3>何と比較するか(3つの比較基準)</h3>
           <p>
-            通貨別カードの「年平均レート / 計画レート」は予算前提からの乖離を示し、
-            対計画の年間影響 = (年平均レート − 計画レート) × エクスポージャー(換算+ヘッジ後取引)で算出しています。
+            年平均レートを「前年平均」「期初計画」「修正計画」の3つの基準と比較し、それぞれ
+            影響額 = (年平均レート − 基準レート) × エクスポージャー(換算+ヘッジ後取引)で算出します。
           </p>
+          <ul>
+            <li>
+              <strong>対 前年</strong>: 前年からの増減益のうち為替で説明できる部分。決算説明の増減益分析に使用。
+            </li>
+            <li>
+              <strong>対 期初計画</strong>: 年度予算のレート前提からの乖離。予算達成の見通し・未達リスクの把握に使用。
+            </li>
+            <li>
+              <strong>対 修正計画</strong>: 期中に見直した直近レート前提からの乖離。業績予想の再修正が必要かの判断に使用。
+              未修正の通貨は期初計画のみで評価されます。
+            </li>
+          </ul>
 
           <h3>前提と限界</h3>
           <ul>

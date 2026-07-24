@@ -32,6 +32,7 @@ export default function FxAssumptionsEditor({ data, onChange }: Props) {
 
       <h3>計画レート・感応度・エクスポージャー</h3>
       <p className="fx-settings-hint">
+        期初計画レートは年度予算の前提、修正計画レートは期中見直し後の前提(空欄=未修正)、前年平均レートは前年比較の基準です。
         換算エクスポージャーは海外子会社の年間売上高・営業利益、取引エクスポージャーは輸出入などの年間純受払額(受取+/支払−。原材料輸入の支払超過ならマイナス)を百万・現地通貨で入力します。
       </p>
       <div className="table-scroll">
@@ -39,7 +40,9 @@ export default function FxAssumptionsEditor({ data, onChange }: Props) {
           <thead>
             <tr>
               <th className="sticky-col">通貨</th>
-              <th>計画レート(円)</th>
+              <th>期初計画レート(円)</th>
+              <th>修正計画レート(円, 空欄=未修正)</th>
+              <th>前年平均レート(円)</th>
               <th>感応度(pt, 空欄=自動推計)</th>
               <th>換算: 売上高(百万)</th>
               <th>換算: 営業利益(百万)</th>
@@ -58,8 +61,31 @@ export default function FxAssumptionsEditor({ data, onChange }: Props) {
                     className="cell-input"
                     type="number"
                     step="any"
-                    value={c.planRate}
-                    onChange={(e) => updateCurrency(c.code, { planRate: Number(e.target.value) })}
+                    value={c.initialPlanRate}
+                    onChange={(e) => updateCurrency(c.code, { initialPlanRate: Number(e.target.value) })}
+                  />
+                </td>
+                <td>
+                  <input
+                    className="cell-input"
+                    type="number"
+                    step="any"
+                    placeholder="未修正"
+                    value={c.revisedPlanRate ?? ''}
+                    onChange={(e) =>
+                      updateCurrency(c.code, {
+                        revisedPlanRate: e.target.value === '' ? null : Number(e.target.value),
+                      })
+                    }
+                  />
+                </td>
+                <td>
+                  <input
+                    className="cell-input"
+                    type="number"
+                    step="any"
+                    value={c.prevYearAvgRate}
+                    onChange={(e) => updateCurrency(c.code, { prevYearAvgRate: Number(e.target.value) })}
                   />
                 </td>
                 <td>

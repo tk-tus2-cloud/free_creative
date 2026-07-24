@@ -2,7 +2,9 @@ export interface FxCurrency {
   code: string // ISO通貨コード
   name: string
   digits: number // レート表示の小数桁数
-  planRate: number // 計画レート(円/通貨)
+  initialPlanRate: number // 期初計画レート(年度予算の前提, 円/通貨)
+  revisedPlanRate: number | null // 修正計画レート(期中見直し後)。null = 未修正
+  prevYearAvgRate: number // 前年の年平均レート(円/通貨)
   monthlyRates: number[] // 月中平均レート(円/通貨)。未確定月は 0
   betaOverride: number | null // ドル円感応度の手動設定。null なら実績から自動推計
   salesExposure: number // 換算: 海外子会社の年間売上高(百万 現地通貨)

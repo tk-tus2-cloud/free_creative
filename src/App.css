@@ -499,7 +499,12 @@ button.secondary:hover {
   margin-top: 8px;
 }
 
-.fx-plan-gap {
+.fx-comparison-table {
+  margin-bottom: 24px;
+}
+
+.fx-comparison-table td.fx-purpose {
+  text-align: left;
   font-size: 13px;
   color: var(--text);
 }
@@ -542,6 +547,10 @@ button.secondary:hover {
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin: 10px 0 0;
+}
+
+.fx-card-kpis-3 {
+  grid-template-columns: 1fr 1fr 1.1fr;
 }
 
 .fx-card-kpis dt {

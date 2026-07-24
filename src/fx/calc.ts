@@ -41,16 +41,40 @@ export function estimateBeta(rates: number[], usdRates: number[]): number | null
   return sumXY / sumXX
 }
 
+// 比較基準(期初計画・修正計画・前年)に対する乖離と影響額
+export interface BaselineComparison {
+  baselineRate: number
+  ratio: number | null // 年平均レート / 基準レート (%)
+  salesImpact: number | null // (年平均 - 基準) × 売上エクスポージャー (百万円)
+  profitImpact: number | null // (年平均 - 基準) × (換算 + ヘッジ後取引)エクスポージャー (百万円)
+}
+
 export interface CurrencyStats {
   currency: FxCurrency
   yearAvg: number | null
   latest: number | null
-  planRatio: number | null // 年平均レート / 計画レート (%)
   beta: number // ドル円感応度(USD は 1)
   betaIsAuto: boolean
   netTransaction: number // ヘッジ後の純取引エクスポージャー(百万 現地通貨)
-  planGapSales: number | null // (年平均 - 計画) × 売上エクスポージャー (百万円)
-  planGapProfit: number | null // (年平均 - 計画) × (換算 + ヘッジ後取引)エクスポージャー (百万円)
+  vsInitialPlan: BaselineComparison | null // 対 期初計画: 年度予算の達成見通し
+  vsRevisedPlan: BaselineComparison | null // 対 修正計画: 直近見通しからの乖離。未修正なら null
+  vsPrevYear: BaselineComparison | null // 対 前年: 前年からの増減益要因
+}
+
+function compareBaseline(
+  yearAvg: number | null,
+  baselineRate: number | null,
+  currency: FxCurrency,
+  netTransaction: number,
+): BaselineComparison | null {
+  if (baselineRate === null || baselineRate <= 0) return null
+  const gap = yearAvg === null ? null : yearAvg - baselineRate
+  return {
+    baselineRate,
+    ratio: yearAvg === null ? null : (yearAvg / baselineRate) * 100,
+    salesImpact: gap === null ? null : gap * currency.salesExposure,
+    profitImpact: gap === null ? null : gap * (currency.profitExposure + netTransaction),
+  }
 }
 
 export function buildStats(data: FxData): CurrencyStats[] {
@@ -69,18 +93,17 @@ export function buildStats(data: FxData): CurrencyStats[] {
         betaIsAuto = true
       }
     }
-    const gap = yearAvg === null ? null : yearAvg - currency.planRate
     const netTransaction = currency.transactionExposure * (1 - currency.hedgeRatio / 100)
     return {
       currency,
       yearAvg,
       latest,
-      planRatio: yearAvg === null || currency.planRate === 0 ? null : (yearAvg / currency.planRate) * 100,
       beta,
       betaIsAuto,
       netTransaction,
-      planGapSales: gap === null ? null : gap * currency.salesExposure,
-      planGapProfit: gap === null ? null : gap * (currency.profitExposure + netTransaction),
+      vsInitialPlan: compareBaseline(yearAvg, currency.initialPlanRate, currency, netTransaction),
+      vsRevisedPlan: compareBaseline(yearAvg, currency.revisedPlanRate, currency, netTransaction),
+      vsPrevYear: compareBaseline(yearAvg, currency.prevYearAvgRate, currency, netTransaction),
     }
   })
 }
@@ -113,13 +136,13 @@ export interface SimulationResult {
 // 営業利益への影響 = 換算影響(海外子会社利益の円換算) + 取引影響(ヘッジ後の純受払 × レート変化)
 export function simulate(stats: CurrencyStats[], deltaUsdYen: number): SimulationResult | null {
   const usdStats = stats.find((s) => s.currency.code === USD_CODE)
-  const usdBase = usdStats ? (usdStats.latest ?? usdStats.yearAvg ?? usdStats.currency.planRate) : null
+  const usdBase = usdStats ? (usdStats.latest ?? usdStats.yearAvg ?? usdStats.currency.initialPlanRate) : null
   if (!usdBase) return null
   const usdChangePct = deltaUsdYen / usdBase
 
   const rows: SimulationRow[] = []
   for (const s of stats) {
-    const baseRate = s.latest ?? s.yearAvg ?? s.currency.planRate
+    const baseRate = s.latest ?? s.yearAvg ?? s.currency.initialPlanRate
     if (!baseRate) continue
     const changePct = s.beta * usdChangePct
     const newRate = baseRate * (1 + changePct)
