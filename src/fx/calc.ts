@@ -48,8 +48,9 @@ export interface CurrencyStats {
   planRatio: number | null // 年平均レート / 計画レート (%)
   beta: number // ドル円感応度(USD は 1)
   betaIsAuto: boolean
+  netTransaction: number // ヘッジ後の純取引エクスポージャー(百万 現地通貨)
   planGapSales: number | null // (年平均 - 計画) × 売上エクスポージャー (百万円)
-  planGapProfit: number | null // (年平均 - 計画) × 営業利益エクスポージャー (百万円)
+  planGapProfit: number | null // (年平均 - 計画) × (換算 + ヘッジ後取引)エクスポージャー (百万円)
 }
 
 export function buildStats(data: FxData): CurrencyStats[] {
@@ -69,6 +70,7 @@ export function buildStats(data: FxData): CurrencyStats[] {
       }
     }
     const gap = yearAvg === null ? null : yearAvg - currency.planRate
+    const netTransaction = currency.transactionExposure * (1 - currency.hedgeRatio / 100)
     return {
       currency,
       yearAvg,
@@ -76,8 +78,9 @@ export function buildStats(data: FxData): CurrencyStats[] {
       planRatio: yearAvg === null || currency.planRate === 0 ? null : (yearAvg / currency.planRate) * 100,
       beta,
       betaIsAuto,
+      netTransaction,
       planGapSales: gap === null ? null : gap * currency.salesExposure,
-      planGapProfit: gap === null ? null : gap * currency.profitExposure,
+      planGapProfit: gap === null ? null : gap * (currency.profitExposure + netTransaction),
     }
   })
 }
@@ -90,8 +93,10 @@ export interface SimulationRow {
   baseRate: number
   newRate: number
   changePct: number
-  salesImpact: number // 百万円
-  profitImpact: number // 百万円
+  salesImpact: number // 換算: 売上高への影響(百万円)
+  translationImpact: number // 換算: 営業利益への影響(百万円)
+  transactionImpact: number // 取引: ヘッジ後の営業利益への影響(百万円)
+  profitImpact: number // 営業利益への影響合計(百万円)
 }
 
 export interface SimulationResult {
@@ -99,10 +104,13 @@ export interface SimulationResult {
   usdChangePct: number
   rows: SimulationRow[]
   totalSales: number
+  totalTranslation: number
+  totalTransaction: number
   totalProfit: number
 }
 
-// ドル円が deltaUsdYen 円動いたとき、各通貨が感応度に応じて連動すると仮定した年間影響額
+// ドル円が deltaUsdYen 円動いたとき、各通貨が感応度に応じて連動すると仮定した年間影響額。
+// 営業利益への影響 = 換算影響(海外子会社利益の円換算) + 取引影響(ヘッジ後の純受払 × レート変化)
 export function simulate(stats: CurrencyStats[], deltaUsdYen: number): SimulationResult | null {
   const usdStats = stats.find((s) => s.currency.code === USD_CODE)
   const usdBase = usdStats ? (usdStats.latest ?? usdStats.yearAvg ?? usdStats.currency.planRate) : null
@@ -116,6 +124,8 @@ export function simulate(stats: CurrencyStats[], deltaUsdYen: number): Simulatio
     const changePct = s.beta * usdChangePct
     const newRate = baseRate * (1 + changePct)
     const deltaRate = newRate - baseRate
+    const translationImpact = s.currency.profitExposure * deltaRate
+    const transactionImpact = s.netTransaction * deltaRate
     rows.push({
       code: s.currency.code,
       name: s.currency.name,
@@ -125,7 +135,9 @@ export function simulate(stats: CurrencyStats[], deltaUsdYen: number): Simulatio
       newRate,
       changePct,
       salesImpact: s.currency.salesExposure * deltaRate,
-      profitImpact: s.currency.profitExposure * deltaRate,
+      translationImpact,
+      transactionImpact,
+      profitImpact: translationImpact + transactionImpact,
     })
   }
   return {
@@ -133,6 +145,8 @@ export function simulate(stats: CurrencyStats[], deltaUsdYen: number): Simulatio
     usdChangePct,
     rows,
     totalSales: rows.reduce((a, r) => a + r.salesImpact, 0),
+    totalTranslation: rows.reduce((a, r) => a + r.translationImpact, 0),
+    totalTransaction: rows.reduce((a, r) => a + r.transactionImpact, 0),
     totalProfit: rows.reduce((a, r) => a + r.profitImpact, 0),
   }
 }

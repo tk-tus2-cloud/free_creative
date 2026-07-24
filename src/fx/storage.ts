@@ -1,8 +1,9 @@
 import type { FxCurrency, FxData } from './types'
 
-const STORAGE_KEY = 'fx-impact-simulation:v1'
+const STORAGE_KEY = 'fx-impact-simulation:v2'
 
-// サンプルの前提データ。4月〜9月は実績確定、10月以降(0)は未確定
+// サンプルの前提データ。4月〜9月は実績確定、10月以降(0)は未確定。
+// 取引エクスポージャーは受取+/支払−の年間純額。USD は原材料輸入の支払超過を想定してマイナス。
 function seedFxData(): FxData {
   const currencies: FxCurrency[] = [
     {
@@ -14,6 +15,8 @@ function seedFxData(): FxData {
       betaOverride: null,
       salesExposure: 180,
       profitExposure: 22,
+      transactionExposure: -250,
+      hedgeRatio: 50,
     },
     {
       code: 'CNY',
@@ -24,6 +27,8 @@ function seedFxData(): FxData {
       betaOverride: null,
       salesExposure: 2800,
       profitExposure: 310,
+      transactionExposure: 0,
+      hedgeRatio: 0,
     },
     {
       code: 'THB',
@@ -34,6 +39,8 @@ function seedFxData(): FxData {
       betaOverride: null,
       salesExposure: 11000,
       profitExposure: 1350,
+      transactionExposure: 0,
+      hedgeRatio: 0,
     },
     {
       code: 'MYR',
@@ -44,6 +51,8 @@ function seedFxData(): FxData {
       betaOverride: null,
       salesExposure: 850,
       profitExposure: 95,
+      transactionExposure: 0,
+      hedgeRatio: 0,
     },
     {
       code: 'KRW',
@@ -54,6 +63,8 @@ function seedFxData(): FxData {
       betaOverride: null,
       salesExposure: 310000,
       profitExposure: 36000,
+      transactionExposure: 0,
+      hedgeRatio: 0,
     },
     {
       code: 'TWD',
@@ -64,9 +75,19 @@ function seedFxData(): FxData {
       betaOverride: null,
       salesExposure: 3100,
       profitExposure: 360,
+      transactionExposure: 0,
+      hedgeRatio: 0,
     },
   ]
   return { currencies }
+}
+
+function normalizeCurrency(c: FxCurrency): FxCurrency {
+  return {
+    ...c,
+    transactionExposure: Number.isFinite(c.transactionExposure) ? c.transactionExposure : 0,
+    hedgeRatio: Number.isFinite(c.hedgeRatio) ? c.hedgeRatio : 0,
+  }
 }
 
 export function loadFxData(): FxData {
@@ -75,7 +96,7 @@ export function loadFxData(): FxData {
     if (!raw) return seedFxData()
     const parsed = JSON.parse(raw) as FxData
     if (!parsed.currencies || !Array.isArray(parsed.currencies)) return seedFxData()
-    return parsed
+    return { ...parsed, currencies: parsed.currencies.map(normalizeCurrency) }
   } catch {
     return seedFxData()
   }

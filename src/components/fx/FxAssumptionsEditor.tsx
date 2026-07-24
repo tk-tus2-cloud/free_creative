@@ -31,6 +31,9 @@ export default function FxAssumptionsEditor({ data, onChange }: Props) {
       <summary>前提データの編集(計画レート・感応度・エクスポージャー・月次実績レート)</summary>
 
       <h3>計画レート・感応度・エクスポージャー</h3>
+      <p className="fx-settings-hint">
+        換算エクスポージャーは海外子会社の年間売上高・営業利益、取引エクスポージャーは輸出入などの年間純受払額(受取+/支払−。原材料輸入の支払超過ならマイナス)を百万・現地通貨で入力します。
+      </p>
       <div className="table-scroll">
         <table className="budget-table fx-settings-table">
           <thead>
@@ -38,8 +41,10 @@ export default function FxAssumptionsEditor({ data, onChange }: Props) {
               <th className="sticky-col">通貨</th>
               <th>計画レート(円)</th>
               <th>感応度(pt, 空欄=自動推計)</th>
-              <th>外貨建て売上高(百万・現地通貨)</th>
-              <th>外貨建て営業利益(百万・現地通貨)</th>
+              <th>換算: 売上高(百万)</th>
+              <th>換算: 営業利益(百万)</th>
+              <th>取引: 純受払額(百万)</th>
+              <th>ヘッジ率(%)</th>
             </tr>
           </thead>
           <tbody>
@@ -91,6 +96,26 @@ export default function FxAssumptionsEditor({ data, onChange }: Props) {
                     step="any"
                     value={c.profitExposure}
                     onChange={(e) => updateCurrency(c.code, { profitExposure: Number(e.target.value) })}
+                  />
+                </td>
+                <td>
+                  <input
+                    className="cell-input"
+                    type="number"
+                    step="any"
+                    value={c.transactionExposure}
+                    onChange={(e) => updateCurrency(c.code, { transactionExposure: Number(e.target.value) })}
+                  />
+                </td>
+                <td>
+                  <input
+                    className="cell-input"
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="any"
+                    value={c.hedgeRatio}
+                    onChange={(e) => updateCurrency(c.code, { hedgeRatio: Number(e.target.value) })}
                   />
                 </td>
               </tr>
