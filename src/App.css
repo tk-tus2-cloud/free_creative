@@ -371,3 +371,216 @@ button.secondary:hover {
 .summary-table td.negative {
   color: var(--danger);
 }
+
+/* --- 為替影響ダッシュボード --- */
+
+.fx-note {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text);
+  background: #eef6ee;
+  border: 1px solid #cfe5cf;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.fx-sim-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.fx-sim-panel .fx-note {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+.fx-sim-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.fx-sim-controls label {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.fx-sim-controls input[type='range'] {
+  flex: 1;
+  min-width: 160px;
+  accent-color: var(--accent);
+}
+
+.fx-quick-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.fx-quick-buttons button {
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.fx-quick-buttons button:hover:not(.active) {
+  background: var(--border);
+}
+
+.fx-quick-buttons button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.fx-sim-scenario {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.fx-sim-scenario strong {
+  font-size: 16px;
+}
+
+.fx-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.fx-kpi-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: #f7f8fa;
+}
+
+.fx-kpi-label {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.fx-kpi-value {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.fx-kpi-sub {
+  font-size: 12px;
+  color: #898781;
+  margin-left: 4px;
+}
+
+.fx-up {
+  color: #1b7a3d;
+}
+
+.fx-down {
+  color: var(--danger);
+}
+
+.fx-cards-toolbar {
+  margin-top: 8px;
+}
+
+.fx-plan-gap {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.fx-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.fx-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.fx-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.fx-card-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.fx-card-unit {
+  font-size: 12px;
+  color: #898781;
+}
+
+.fx-card-kpis {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+
+.fx-card-kpis dt {
+  font-size: 11px;
+  color: #898781;
+}
+
+.fx-card-kpis dd {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.fx-settings {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+}
+
+.fx-settings summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.fx-settings h3 {
+  font-size: 13px;
+  margin: 16px 0 8px;
+  color: var(--text-h);
+}
+
+.fx-settings-table td {
+  text-align: right;
+}
+
+.fx-rate-input {
+  width: 72px;
+}

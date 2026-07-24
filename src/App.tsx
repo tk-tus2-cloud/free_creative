@@ -3,10 +3,11 @@ import './App.css'
 import Sidebar from './components/Sidebar'
 import BudgetTable from './components/BudgetTable'
 import SummaryDashboard from './components/SummaryDashboard'
+import FxDashboard from './components/fx/FxDashboard'
 import { createDepartment, createLineItem, loadData, saveData } from './storage'
 import type { BudgetData } from './types'
 
-type Tab = 'table' | 'summary'
+type Tab = 'table' | 'summary' | 'fx'
 
 function App() {
   const [data, setData] = useState<BudgetData>(() => loadData())
@@ -107,6 +108,9 @@ function App() {
           <button type="button" className={tab === 'summary' ? 'active' : ''} onClick={() => setTab('summary')}>
             全体サマリー
           </button>
+          <button type="button" className={tab === 'fx' ? 'active' : ''} onClick={() => setTab('fx')}>
+            為替影響
+          </button>
         </nav>
       </header>
 
@@ -126,7 +130,9 @@ function App() {
         />
 
         <main className="app-main">
-          {tab === 'summary' ? (
+          {tab === 'fx' ? (
+            <FxDashboard fiscalYear={data.fiscalYear} />
+          ) : tab === 'summary' ? (
             <SummaryDashboard departments={data.departments} fiscalYear={data.fiscalYear} />
           ) : selectedDept ? (
             <BudgetTable
