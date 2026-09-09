@@ -1,5 +1,17 @@
 export function formatYen(value: number): string {
-  return `¥${Math.round(value).toLocaleString('ja-JP')}`
+  const sign = value < 0 ? '-' : ''
+  return `${sign}¥${Math.round(Math.abs(value)).toLocaleString('ja-JP')}`
+}
+
+export function formatHours(value: number): string {
+  return `${value.toLocaleString('ja-JP', { maximumFractionDigits: 1 })}時間`
+}
+
+export function formatMonthShort(label: string): string {
+  // "2025年1月" -> "25/1"
+  const m = /^(\d{4})年(\d{1,2})月$/.exec(label)
+  if (!m) return label
+  return `${m[1].slice(2)}/${m[2]}`
 }
 
 export function formatRate(rate: number | null): string {

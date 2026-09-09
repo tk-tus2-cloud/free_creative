@@ -1,147 +1,76 @@
-import { useEffect, useState } from 'react'
 import './App.css'
-import Sidebar from './components/Sidebar'
-import BudgetTable from './components/BudgetTable'
-import SummaryDashboard from './components/SummaryDashboard'
-import { createDepartment, createLineItem, loadData, saveData } from './storage'
-import type { BudgetData } from './types'
-
-type Tab = 'table' | 'summary'
+import TrendChart from './components/TrendChart'
+import DataTable from './components/DataTable'
+import {
+  months,
+  overtimeHoursByCategory,
+  overtimeHoursTotal,
+  wageComponents,
+  wageTotal,
+} from './data/trendData'
+import { formatHours, formatYen } from './utils/format'
 
 function App() {
-  const [data, setData] = useState<BudgetData>(() => loadData())
-  const [selectedDeptId, setSelectedDeptId] = useState<string | null>(
-    () => data.departments[0]?.id ?? null,
-  )
-  const [tab, setTab] = useState<Tab>('table')
-
-  useEffect(() => {
-    saveData(data)
-  }, [data])
-
-  useEffect(() => {
-    if (!selectedDeptId && data.departments.length > 0) {
-      setSelectedDeptId(data.departments[0].id)
-    }
-  }, [data.departments, selectedDeptId])
-
-  const selectedDept = data.departments.find((d) => d.id === selectedDeptId) ?? null
-
-  function updateDepartments(fn: (departments: BudgetData['departments']) => BudgetData['departments']) {
-    setData((prev) => ({ ...prev, departments: fn(prev.departments) }))
-  }
-
-  function handleAddDepartment(name: string) {
-    const dept = createDepartment(name)
-    updateDepartments((depts) => [...depts, dept])
-    setSelectedDeptId(dept.id)
-  }
-
-  function handleRenameDepartment(id: string, name: string) {
-    updateDepartments((depts) => depts.map((d) => (d.id === id ? { ...d, name } : d)))
-  }
-
-  function handleDeleteDepartment(id: string) {
-    updateDepartments((depts) => depts.filter((d) => d.id !== id))
-    if (selectedDeptId === id) {
-      const remaining = data.departments.filter((d) => d.id !== id)
-      setSelectedDeptId(remaining[0]?.id ?? null)
-    }
-  }
-
-  function handleAddCategory(name: string) {
-    if (!selectedDept) return
-    updateDepartments((depts) =>
-      depts.map((d) => (d.id === selectedDept.id ? { ...d, items: [...d.items, createLineItem(name)] } : d)),
-    )
-  }
-
-  function handleRenameCategory(itemId: string, name: string) {
-    if (!selectedDept) return
-    updateDepartments((depts) =>
-      depts.map((d) =>
-        d.id === selectedDept.id
-          ? { ...d, items: d.items.map((i) => (i.id === itemId ? { ...i, category: name } : i)) }
-          : d,
-      ),
-    )
-  }
-
-  function handleDeleteCategory(itemId: string) {
-    if (!selectedDept) return
-    updateDepartments((depts) =>
-      depts.map((d) => (d.id === selectedDept.id ? { ...d, items: d.items.filter((i) => i.id !== itemId) } : d)),
-    )
-  }
-
-  function handleChangeValue(itemId: string, monthIndex: number, mode: 'budget' | 'actual', value: number) {
-    if (!selectedDept) return
-    updateDepartments((depts) =>
-      depts.map((d) => {
-        if (d.id !== selectedDept.id) return d
-        return {
-          ...d,
-          items: d.items.map((i) => {
-            if (i.id !== itemId) return i
-            const next = { ...i, [mode]: [...i[mode]] }
-            next[mode][monthIndex] = value
-            return next
-          }),
-        }
-      }),
-    )
-  }
-
-  function handleChangeFiscalYear(year: number) {
-    setData((prev) => ({ ...prev, fiscalYear: year }))
-  }
+  const rangeLabel = `${months[0]} 〜 ${months[months.length - 1]}`
 
   return (
     <div className="app-shell">
       <header className="app-header">
-        <h1>部門予算管理表</h1>
-        <nav className="tab-nav">
-          <button type="button" className={tab === 'table' ? 'active' : ''} onClick={() => setTab('table')}>
-            部門別入力
-          </button>
-          <button type="button" className={tab === 'summary' ? 'active' : ''} onClick={() => setTab('summary')}>
-            全体サマリー
-          </button>
-        </nav>
+        <h1>基準外賃金・所定外労働時間 推移分析</h1>
+        <p className="app-subtitle">対象期間: {rangeLabel}</p>
       </header>
 
-      <div className="app-body">
-        <Sidebar
-          departments={data.departments}
-          selectedId={selectedDeptId}
-          onSelect={(id) => {
-            setSelectedDeptId(id)
-            setTab('table')
-          }}
-          onAddDepartment={handleAddDepartment}
-          onRenameDepartment={handleRenameDepartment}
-          onDeleteDepartment={handleDeleteDepartment}
-          fiscalYear={data.fiscalYear}
-          onChangeFiscalYear={handleChangeFiscalYear}
-        />
+      <main className="app-main">
+        <section className="section">
+          <div className="section-head">
+            <h2>基準外の構成要素の金額推移</h2>
+            <p className="section-desc">
+              基準外賃金合計を科目別（時間外手当・休出手当・特殊勤務手当など）に分解した月次金額の推移です。黒線は基準外賃金合計を示します。
+            </p>
+          </div>
+          <TrendChart
+            months={months}
+            series={wageComponents}
+            total={wageTotal}
+            totalLabel="基準外賃金合計"
+            valueFormatter={formatYen}
+            unitLabel="円"
+          />
+          <DataTable
+            months={months}
+            series={wageComponents}
+            total={wageTotal}
+            totalLabel="基準外賃金合計"
+            valueFormatter={formatYen}
+            csvFilename="基準外賃金_構成要素別推移.csv"
+          />
+        </section>
 
-        <main className="app-main">
-          {tab === 'summary' ? (
-            <SummaryDashboard departments={data.departments} fiscalYear={data.fiscalYear} />
-          ) : selectedDept ? (
-            <BudgetTable
-              department={selectedDept}
-              fiscalYear={data.fiscalYear}
-              onAddCategory={handleAddCategory}
-              onRenameCategory={handleRenameCategory}
-              onDeleteCategory={handleDeleteCategory}
-              onChangeValue={handleChangeValue}
-            />
-          ) : (
-            <p className="empty-state">部門を追加してください。</p>
-          )}
-        </main>
-      </div>
+        <section className="section">
+          <div className="section-head">
+            <h2>所定外時間の推移</h2>
+            <p className="section-desc">
+              所定外労働時間（時間外勤務＋深夜勤務＋休出時間外法外・法定）を組織区分別に分解した月次時間の推移です。黒線は単体+関係会社の合計を示します。
+            </p>
+          </div>
+          <TrendChart
+            months={months}
+            series={overtimeHoursByCategory}
+            total={overtimeHoursTotal}
+            totalLabel="単体+関係会社計"
+            valueFormatter={formatHours}
+            unitLabel="時間"
+          />
+          <DataTable
+            months={months}
+            series={overtimeHoursByCategory}
+            total={overtimeHoursTotal}
+            totalLabel="単体+関係会社計"
+            valueFormatter={formatHours}
+            csvFilename="所定外労働時間_組織区分別推移.csv"
+          />
+        </section>
+      </main>
     </div>
   )
 }
