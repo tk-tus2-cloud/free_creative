@@ -12,6 +12,12 @@ import {
 import type { SeriesData } from '../data/trendData'
 import { colorForIndex } from '../utils/palette'
 import { formatMonthShort } from '../utils/format'
+import { linreg, trailingMovingAverage } from '../utils/stats'
+
+const MA_KEY = '__ma'
+const TREND_KEY = '__trend'
+const MA_LABEL = '3ヵ月移動平均'
+const TREND_LABEL = 'トレンド（回帰直線）'
 
 interface TrendChartProps {
   months: string[]
@@ -30,10 +36,15 @@ export default function TrendChart({
   valueFormatter,
   unitLabel,
 }: TrendChartProps) {
+  const ma = total ? trailingMovingAverage(total, 3) : undefined
+  const reg = total ? linreg(total) : undefined
+
   const rows = months.map((month, i) => {
-    const row: Record<string, string | number> = { month: formatMonthShort(month), monthFull: month }
+    const row: Record<string, string | number | null> = { month: formatMonthShort(month), monthFull: month }
     for (const s of series) row[s.key] = s.values[i]
     if (total) row[totalLabel] = total[i]
+    if (ma) row[MA_KEY] = ma[i]
+    if (reg) row[TREND_KEY] = reg.start + ((reg.end - reg.start) * i) / (months.length - 1)
     return row
   })
 
@@ -56,11 +67,40 @@ export default function TrendChart({
             width={72}
             tickFormatter={(v: number) => (unitLabel === '円' ? `${Math.round(v / 1_000_000)}M` : v.toLocaleString('ja-JP'))}
           />
-          <Tooltip content={<CustomTooltip valueFormatter={valueFormatter} />} />
-          <Legend content={<CustomLegend series={series} total={total ? totalLabel : undefined} />} />
+          <Tooltip content={<CustomTooltip valueFormatter={valueFormatter} maKey={ma ? MA_KEY : undefined} />} />
+          <Legend
+            content={
+              <CustomLegend series={series} total={total ? totalLabel : undefined} showTrend={Boolean(total)} />
+            }
+          />
           {series.map((s, i) => (
             <Bar key={s.key} dataKey={s.key} stackId="stack" fill={colorForIndex(i)} radius={[2, 2, 2, 2]} />
           ))}
+          {reg && (
+            <Line
+              type="linear"
+              dataKey={TREND_KEY}
+              stroke="var(--accent)"
+              strokeWidth={1.6}
+              strokeDasharray="6 4"
+              dot={false}
+              isAnimationActive={false}
+              legendType="none"
+            />
+          )}
+          {ma && (
+            <Line
+              type="monotone"
+              dataKey={MA_KEY}
+              stroke="var(--muted)"
+              strokeWidth={1.8}
+              strokeDasharray="1 3"
+              dot={false}
+              connectNulls
+              isAnimationActive={false}
+              legendType="none"
+            />
+          )}
           {total && (
             <Line
               type="monotone"
@@ -77,7 +117,15 @@ export default function TrendChart({
   )
 }
 
-function CustomLegend({ series, total }: { series: SeriesData[]; total?: string }) {
+function CustomLegend({
+  series,
+  total,
+  showTrend,
+}: {
+  series: SeriesData[]
+  total?: string
+  showTrend: boolean
+}) {
   return (
     <div className="chart-legend">
       {series.map((s, i) => (
@@ -91,6 +139,18 @@ function CustomLegend({ series, total }: { series: SeriesData[]; total?: string 
           <span className="chart-legend-line" />
           {total}
         </span>
+      )}
+      {showTrend && (
+        <>
+          <span className="chart-legend-item">
+            <span className="chart-legend-line chart-legend-line--ma" />
+            {MA_LABEL}
+          </span>
+          <span className="chart-legend-item">
+            <span className="chart-legend-line chart-legend-line--trend" />
+            {TREND_LABEL}
+          </span>
+        </>
       )}
     </div>
   )
@@ -107,17 +167,22 @@ function CustomTooltip({
   payload,
   label,
   valueFormatter,
+  maKey,
 }: {
   active?: boolean
   payload?: TooltipPayloadItem[]
   label?: string
   valueFormatter: (value: number) => string
+  maKey?: string
 }) {
   if (!active || !payload || payload.length === 0) return null
+  const visible = payload.filter((item) => item.dataKey !== TREND_KEY)
+  const maItem = visible.find((item) => item.dataKey === maKey)
+  const rest = visible.filter((item) => item.dataKey !== maKey)
   return (
     <div className="chart-tooltip">
       <div className="chart-tooltip-title">{label}</div>
-      {payload
+      {rest
         .slice()
         .reverse()
         .map((item) => (
@@ -127,6 +192,13 @@ function CustomTooltip({
             <span className="chart-tooltip-value">{valueFormatter(item.value)}</span>
           </div>
         ))}
+      {maItem && maItem.value != null && (
+        <div className="chart-tooltip-row chart-tooltip-row--ma">
+          <span className="chart-tooltip-key chart-tooltip-key--dotted" />
+          <span className="chart-tooltip-name">{MA_LABEL}</span>
+          <span className="chart-tooltip-value">{valueFormatter(maItem.value)}</span>
+        </div>
+      )}
     </div>
   )
 }
